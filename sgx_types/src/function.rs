@@ -906,7 +906,13 @@ extern "C" {
 
     pub fn sgx_fopen_auto_key(filename: *const c_char, mode: *const c_char) -> SGX_FILE;
     pub fn sgx_fopen_integrity_only(filename: * const c_char, mode: * const c_char) -> SGX_FILE;
-    pub fn sgx_fwrite(ptr: * const c_void, size: size_t, count: size_t, stream: SGX_FILE) -> size_t;
+    pub fn sgx_fopen_ex(
+        filename: *const c_char,
+        mode: *const c_char,
+        key: *const sgx_key_128bit_t,
+        cache_size: u64,
+    ) -> SGX_FILE;
+    pub fn sgx_fwrite(ptr: *const c_void, size: size_t, count: size_t, stream: SGX_FILE) -> size_t;
     pub fn sgx_fread(ptr: *mut c_void, size: size_t, count: size_t, stream: SGX_FILE) -> size_t;
     pub fn sgx_ftell(stream: SGX_FILE) -> int64_t;
     pub fn sgx_fseek(stream: SGX_FILE, offset: int64_t, origin: int32_t) -> int32_t;

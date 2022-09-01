@@ -144,8 +144,16 @@ impl SgxFile {
         OpenOptions::new().read(true).open_ex(path.as_ref(), key)
     }
 
+    pub fn open_with_cache_size<P: AsRef<Path>>(path: P, cache_size: u64) -> io::Result<SgxFile> {
+        OpenOptions::new().read(true).open_with_cache_size(path.as_ref(), cache_size)
+    }
+
     pub fn create_ex<P: AsRef<Path>>(path: P, key: &sgx_key_128bit_t) -> io::Result<SgxFile> {
         OpenOptions::new().write(true).open_ex(path.as_ref(), key)
+    }
+
+    pub fn create_with_cache_size<P: AsRef<Path>>(path: P, cache_size: u64) -> io::Result<SgxFile> {
+        OpenOptions::new().write(true).open_with_cache_size(path.as_ref(), cache_size)
     }
 
     pub fn is_eof(&self) -> bool {
@@ -295,6 +303,10 @@ impl OpenOptions {
         self._open_integrity_only(path.as_ref())
     }
 
+    pub fn open_with_cache_size<P: AsRef<Path>>(&self, path: P, cache_size: u64) -> io::Result<SgxFile> {
+        self._open_with_cache_size(path.as_ref(), cache_size)
+    }
+
     fn _open(&self, path: &Path) -> io::Result<SgxFile> {
         let inner = fs_imp::SgxFile::open(path, &self.0)?;
         Ok(SgxFile { inner })
@@ -308,6 +320,11 @@ impl OpenOptions {
     fn _open_integrity_only(&self, path: &Path) -> io::Result<SgxFile> {
         let inner = fs_imp::SgxFile::open_integrity_only(path, &self.0)?;
         Ok(SgxFile { inner: inner })
+    }
+
+    fn _open_with_cache_size(&self, path: &Path, cache_size: u64) -> io::Result<SgxFile> {
+        let inner = fs_imp::SgxFile::open_with_cache_size(path, &self.0, cache_size)?;
+        Ok(SgxFile { inner })
     }
 }
 

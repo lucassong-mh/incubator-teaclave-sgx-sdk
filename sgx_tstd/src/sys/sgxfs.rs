@@ -84,14 +84,14 @@ impl SgxFile {
         let path = cstr(path)?;
         let mode = opts.get_access_mode()?;
         let opts = CString::new(mode.as_bytes())?;
-        SgxFile::open_c(&path, &opts, &sgx_key_128bit_t::default(), true, false)
+        SgxFile::open_c(&path, &opts, &sgx_key_128bit_t::default(), true, false, None)
     }
 
     pub fn open_ex(path: &Path, opts: &OpenOptions, key: &sgx_key_128bit_t) -> io::Result<SgxFile> {
         let path = cstr(path)?;
         let mode = opts.get_access_mode()?;
         let opts = CString::new(mode.as_bytes())?;
-        SgxFile::open_c(&path, &opts, key, false, false)
+        SgxFile::open_c(&path, &opts, key, false, false, None)
     }
 
     pub fn open_integrity_only(path: &Path, opts: &OpenOptions) -> io::Result<SgxFile> {
@@ -99,15 +99,24 @@ impl SgxFile {
         let path = cstr(path)?;
         let mode = opts.get_access_mode()?;
         let opts = CString::new(mode.as_bytes())?;
-        SgxFile::open_c(&path, &opts, &sgx_key_128bit_t::default(), false, true)
+        SgxFile::open_c(&path, &opts, &sgx_key_128bit_t::default(), false, true, None)
     }
 
-    pub fn open_c(path: &CStr, opts: &CStr, key: &sgx_key_128bit_t, auto: bool, integrity_only: bool) -> io::Result<SgxFile> {
+    pub fn open_with_cache_size(path: &Path, opts: &OpenOptions, cache_size: u64) -> io::Result<SgxFile> {
+        let path = cstr(path)?;
+        let mode = opts.get_access_mode()?;
+        let opts = CString::new(mode.as_bytes())?;
+        SgxFile::open_c(&path, &opts, &sgx_key_128bit_t::default(), false, false, Some(cache_size))
+    }
+
+    pub fn open_c(path: &CStr, opts: &CStr, key: &sgx_key_128bit_t, auto: bool, integrity_only: bool, cache_size: Option<u64>) -> io::Result<SgxFile> {
 
         let file = if integrity_only == true {
             SgxFileStream::open_integrity_only(path, opts)
         } else if auto == true {
             SgxFileStream::open_auto_key(path, opts)
+        } else if cache_size.is_some() {
+            SgxFileStream::open_ex(path, opts, key, cache_size.unwrap())
         } else {
             SgxFileStream::open(path, opts, key)
         };
